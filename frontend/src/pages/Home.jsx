@@ -24,6 +24,7 @@ function Home() {
 
 
   const fetchMovies = async () => {
+    try{
     setLoading(true);
 
     const res = await fetch(
@@ -33,8 +34,14 @@ function Home() {
     const data = await res.json();
 
     setMovies(data.results || []); // ✅ TMDB format
-    setLoading(false);
-  };
+  } catch(err){
+    console.log("Error: ", err);
+    setMovies([]);
+  }
+  finally{
+     setLoading(false);
+  }
+};
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-gray-900 to-black text-white">
