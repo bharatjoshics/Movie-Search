@@ -105,7 +105,7 @@ function MovieDetails() {
     setAiLoading(true);
     setExplanation("");
 
-    const res = await fetch("https://api.moviesearch.bharatjoshi.xyz", {
+    const res = await fetch("https://api.moviesearch.bharatjoshi.xyz/api/explain", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
