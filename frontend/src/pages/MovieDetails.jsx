@@ -3,11 +3,10 @@ import { useEffect, useState } from "react";
 import Loader from "../components/Loader";
 import Navbar from "../components/Navbar";
 import { getMovieVerdict } from "../utils/movieStatus";
-import MovieCard from "../components/MovieCard";
+import MovieCard from "../components/MovieCard"
 
 function MovieDetails() {
   const { id } = useParams();
-
   const [movie, setMovie] = useState(null);
   const [movieDetails, setMovieDetails] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -35,220 +34,269 @@ function MovieDetails() {
     ]);
   };
 
-  // ✅ MAIN FETCH (ONLY THIS CONTROLS LOADER)
   const fetchMovie = async () => {
-    try {
-      setLoading(true);
-      setError("");
+    try{
+        setLoading(true);
+        setError("");
 
-      const res = await fetchWithTimeout(
-        `https://api.themoviedb.org/3/movie/${id}?api_key=${API_KEY}`
-      );
+        const res = await fetchWithTimeout(
+            `https://api.themoviedb.org/3/movie/${id}?api_key=${API_KEY}`
+        );
 
-      const data = await res.json();
-      setMovie(data);
+        const data = await res.json();
+        setMovie(data);
 
-      // 🚀 NON-BLOCKING CALLS
-      fetchTrailer(id);
-      fetchRecommendations(id);
-      fetchMovieDetails(data);
-
-    } catch (err) {
-      console.log(err);
-      setError("Failed to load movie 😔");
-    } finally {
-      setLoading(false); // ✅ ALWAYS STOP LOADING
+        fetchTrailer(id); // updated
+        fetchRecommendations(id);
+        fetchMovieDetails(data);
+    } catch(err){
+        console.log(err);
+        setError("Failed to load movie 😔");
+    } finally{
+        setLoading(false);
     }
   };
-
-  // ✅ OMDb FETCH (FIXED)
+  
   const fetchMovieDetails = async (movieData) => {
     try {
-      setLoadingDetails(true);
+        setLoadingDetails(true);
 
-      // 1. Get IMDb ID
-      const res1 = await fetchWithTimeout(
-        `https://api.themoviedb.org/3/movie/${movieData.id}/external_ids?api_key=${API_KEY}`
-      );
+        // 🔹 STEP 1: Get IMDb ID from TMDB
+        const res1 = await fetchWithTimeout(
+        `https://api.themoviedb.org/3/movie/${id}/external_ids?api_key=${API_KEY}`
+        );
 
-      const data1 = await res1.json();
-      const imdbID = data1.imdb_id;
+        const data1 = await res1.json();
+        const imdbID = data1.imdb_id;
 
-      if (!imdbID) return;
+        if (!imdbID) return;
 
-      // 2. Fetch OMDb
-      const res2 = await fetchWithTimeout(
+        // 🔹 STEP 2: Fetch OMDb data using IMDb ID
+        const res2 = await fetchWithTimeout(
         `https://www.omdbapi.com/?apikey=${OTHER_DATA_API_KEY}&i=${imdbID}&plot=full`
-      );
+        );
 
-      const data2 = await res2.json();
-      setMovieDetails(data2);
+        const data2 = await res2.json();
+        setMovieDetails(data2);
 
     } catch (err) {
-      console.log(err);
+        console.log(err);
     } finally {
-      setLoadingDetails(false);
+        setLoadingDetails(false);
     }
   };
 
-  // ✅ TRAILER
   const fetchTrailer = async (id) => {
     try {
-      const res = await fetchWithTimeout(
+        const res = await fetchWithTimeout(
         `https://api.themoviedb.org/3/movie/${id}/videos?api_key=${API_KEY}`
-      );
+        );
 
-      const data = await res.json();
+        const data = await res.json();
 
-      const trailer = data.results.find(
+        const trailer = data.results.find(
         (vid) => vid.type === "Trailer" && vid.site === "YouTube"
-      );
+        );
 
-      setTrailer(trailer?.key);
+        setTrailer(trailer?.key);
 
     } catch (err) {
-      console.log(err);
+        console.log(err);
     }
   };
 
-  // ✅ RECOMMENDATIONS
   const fetchRecommendations = async (id) => {
     try {
-      const res = await fetchWithTimeout(
+        const res = await fetchWithTimeout(
         `https://api.themoviedb.org/3/movie/${id}/recommendations?api_key=${API_KEY}`
-      );
+        );
 
-      const data = await res.json();
-      setRecommendations(data.results || []);
-
+        const data = await res.json();
+        setRecommendations(data.results || []);
     } catch (err) {
-      console.log(err);
+        console.log(err);
     }
   };
 
-  // ✅ AI
   const getExplanation = async () => {
-    try {
-      setAiLoading(true);
-      setExplanation("");
+  try {
+    setAiLoading(true);
+    setExplanation("");
 
-      const res = await fetchWithTimeout(
-        "https://api.moviesearch.bharatjoshi.xyz/api/explain",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: movie.title,
-            plot: movieDetails?.Plot || movie.overview,
-          }),
-        }
-      );
+    const res = await fetchWithTimeout("https://api.moviesearch.bharatjoshi.xyz/api/explain", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        title: movie.title,
+        plot: movieDetails?.Plot || movie.overview,
+      }),
+    });
 
-      const data = await res.json();
-      setExplanation(data.explanation);
+    const data = await res.json();
 
+    setExplanation(data.explanation);
     } catch (err) {
-      console.error(err);
-      setExplanation("Something went wrong 😔");
+        console.error(err);
+        setExplanation("Something went wrong 😔");
     } finally {
-      setAiLoading(false);
+        setAiLoading(false);
     }
   };
 
-  // ✅ BETTER LOADING LOGIC
   if (loading) return <Loader />;
-  if (!movie) return null;
+  if(!movie) return null;
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-gray-900 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition duration-300 text-white">
+        
+        <Navbar />
 
-      <Navbar />
-
-      {/* ERROR */}
-      {error && (
-        <p className="text-center text-red-400 mt-4">{error}</p>
-      )}
-
-      <div className="p-6 grid md:grid-cols-3 gap-6">
-
-        {/* LEFT */}
-        <div>
-          <img
-            src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-            alt={movie.title}
-            className="rounded-lg w-full"
-          />
-
-          {/* Plot */}
-          <div className="mt-6">
-            <h2 className="text-xl font-semibold mb-1">Plot</h2>
-            <p className="text-gray-300">
-              {movieDetails?.Plot || "Loading plot..."}
-            </p>
-          </div>
-
-          {/* AI */}
-          <div className="mt-6">
-            <button
-              onClick={getExplanation}
-              className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded"
-            >
-              🤖 Explain Movie
-            </button>
-
-            {aiLoading && <p className="mt-2 text-gray-400">Thinking...</p>}
-
-            {explanation && (
-              <div className="mt-4 bg-gray-800 p-4 rounded-lg">
-                <p>{explanation}</p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* RIGHT */}
-        <div className="md:col-span-2 space-y-4">
-          <h1 className="text-3xl font-bold">{movie.title}</h1>
-
-          {trailer && (
-            <iframe
-              className="w-full h-64 rounded-lg"
-              src={`https://www.youtube.com/embed/${trailer}`}
-              allowFullScreen
-            />
-          )}
-
-          <p className="text-gray-400">
-            {movie.release_date} • {movie.runtime} min •{" "}
-            {movie.genres?.map(g => g.name).join(", ")}
-          </p>
-
-          <p>{movie.overview}</p>
-
-          {/* DETAILS */}
-          <div className="grid sm:grid-cols-2 gap-4">
-            <p>🎭 {movieDetails?.Actors || "Loading..."}</p>
-            <p>🎬 {movieDetails?.Director || "Loading..."}</p>
-            <p>💰 {movieDetails?.BoxOffice || "Loading..."}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* RECOMMENDED */}
-      <div className="p-6">
-        <h2 className="text-2xl mb-4">Recommended 🎯</h2>
-
-        {recommendations.length === 0 ? (
-          <p className="text-gray-400">Loading recommendations...</p>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {recommendations.map((movie) => (
-              <MovieCard key={movie.id} movie={movie} />
-            ))}
-          </div>
+        {/* ERROR */}
+        {error && (
+            <p className="text-center text-red-400 mt-4">{error}</p>
         )}
-      </div>
 
+        <div className="p-6 grid md:grid-cols-3 gap-6">
+            
+            {/* Poster */}
+            <div>
+                {movie.poster_path !== "N/A" ? (
+                    <img
+                    src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                    alt={movie.title}
+                    className="rounded-lg shadow-lg w-full"
+                    />
+                ) : (
+                    <div className="w-full h-96 bg-gray-700 flex items-center justify-center">
+                    No Image
+                    </div>
+                )}
+
+                {/* Plot */}
+                <div className="mt-6">
+                    <h2 className="text-xl font-semibold mb-1">Plot</h2>
+                    <p className="text-gray-300">{movieDetails?.Plot}</p>
+                </div>
+
+                <div className="mt-6">
+                    <button
+                        onClick={getExplanation}
+                        className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded transition"
+                    >
+                        🤖 Explain Movie
+                    </button>
+
+                    {aiLoading && (
+                        <p className="mt-2 text-gray-400 animate-pulse">
+                        Thinking...
+                        </p>
+                    )}
+
+                    {explanation && (
+                        <div className="mt-4 bg-gray-800 p-4 rounded-lg">
+                        <h3 className="font-semibold mb-2">Explanation</h3>
+                        <p className="text-gray-300">{explanation}</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Details */}
+            <div className="md:col-span-2 space-y-4">
+            <h1 className="text-3xl font-bold">{movie.title}</h1>
+
+            {trailer && (
+                <div className="mt-6">
+                    <h2 className="text-xl font-semibold mb-2">🎬 Trailer</h2>
+
+                    <div className="aspect-video">
+                    <iframe
+                        className="w-full h-full rounded-lg"
+                        src={`https://www.youtube.com/embed/${trailer}`}
+                        title="Movie Trailer"
+                        allowFullScreen
+                    ></iframe>
+                    </div>
+                </div>
+            )}
+
+            <p className="text-gray-400">
+                {movie.release_date} • {movie.runtime} min •{" "} 
+                {movie.genres?.map(g => g.name).join(", ")}
+            </p>
+
+            <p>{movie.overview}</p>
+
+            {/* Ratings */}
+            <div className="flex gap-4 flex-wrap">
+                {movieDetails?.Ratings?.map((rating, index) => (
+                <div
+                    key={index}
+                    className="bg-gray-800 px-3 py-2 rounded"
+                >
+                    <p className="text-sm text-gray-400">{rating.Source}</p>
+                    <p className="font-semibold">{rating.Value}</p>
+                </div>
+                ))}
+                <div className="bg-gray-800 px-3 py-2 rounded">
+                    <p className="text-sm text-gray-400">📊 Verdic</p>
+                    <p className="font-semibold">{" "}{getMovieVerdict(movieDetails?.BoxOffice)}</p>
+                </div>
+            </div>
+
+            {/* Info Grid */}
+            <div className="grid sm:grid-cols-2 gap-4 mt-4">
+                <p><span className="font-semibold">🎭 Actors:</span> {movieDetails?.Actors}</p>
+                <p><span className="font-semibold">🎬 Director:</span> {movieDetails?.Director}</p>
+                <p><span className="font-semibold">✍️ Writer:</span> {movieDetails?.Writer}</p>
+                <p><span className="font-semibold">🌐 Language:</span> {movieDetails?.Language}</p>
+                <p><span className="font-semibold">🏆 Awards:</span> {movieDetails?.Awards}</p>
+                <p><span className="font-semibold">💰 Box Office:</span> {movieDetails?.BoxOffice}</p>
+            </div>
+
+            </div>
+
+        </div>
+
+        <div className="mt-12 px-4 md:px-6 gap-6 mb-3">
+            {/* Title */}
+            <div className="flex items-center justify-between mb-6">
+                <h2 className="text-2xl font-bold tracking-wide">
+                Recommended 🎯
+                </h2>
+
+                <span className="text-sm text-gray-400">
+                Based on this movie
+                </span>
+            </div>
+
+            {/* Content */}
+            {recommendations.length === 0 ? (
+                <p className="text-center text-gray-400 py-10">
+                No recommendations found 😔
+                </p>
+            ) : (
+                <div className="grid 
+                grid-cols-2 
+                sm:grid-cols-3 
+                md:grid-cols-4 
+                lg:grid-cols-5 
+                gap-6"
+                >
+                {recommendations.map((movie) => (
+                    <div
+                    key={movie.id}
+                    className="transform hover:scale-105 transition duration-300 ease-in-out"
+                    >
+                    <MovieCard movie={movie} />
+                    </div>
+                ))}
+                </div>
+            )}
+        </div>
+            
     </div>
   );
 }
