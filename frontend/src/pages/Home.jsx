@@ -7,6 +7,7 @@ function Home() {
   const [query, setQuery] = useState("");
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
@@ -22,21 +23,39 @@ function Home() {
     return () => clearTimeout(timer);
   }, [query]);
 
+  const fetchWithTimeout = (url, options = {}, timeout = 8000) => {
+    return Promise.race([
+        fetch(url, options),
+        new Promise((_, reject) =>
+        setTimeout(() => reject(new Error("Request timeout")), timeout)
+        ),
+    ]);
+  };
 
   const fetchMovies = async () => {
+    if (query.trim().length < 3) {
+        setMovies([]);
+        return;
+    }
     try{
-    setLoading(true);
+        setError("");
+        setLoading(true);
 
-    const res = await fetch(
-        `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${query}`
-    );
+        const res = await fetchWithTimeout(
+            `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${query}`
+        );
 
-    const data = await res.json();
+        const data = await res.json();
 
-    setMovies(data.results || []); // ✅ TMDB format
-  } catch(err){
+        setMovies(data.results || []); // ✅ TMDB format
+   }catch(err){
     console.log("Error: ", err);
     setMovies([]);
+
+    if(err.message === "Request timeout")
+        setError("SLow network ⚠️ Please try again");
+    else
+        setError("Something went wrong 😔");
   }
   finally{
      setLoading(false);
@@ -62,6 +81,9 @@ function Home() {
 
         {/* Content */}
         <div className="p-6">
+            {error && (
+                <p className="text-center text-red-400 text-lg mt-6">{error}</p>
+            )}
             {query.trim() === "" ? (
                 <p className="text-center text-gray-400 text-lg mt-10 animate-pulse">
                 Start typing to search movies 🎬
