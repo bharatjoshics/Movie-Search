@@ -8,6 +8,7 @@ function Home() {
   const [movies, setMovies] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showNote, setShowNote] = useState(true);
 
   const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
 
@@ -106,6 +107,19 @@ function Home() {
           className="px-4 py-2 w-72 md:w-96 rounded-md text-black outline-none"
         />
       </div>
+
+      {showNote && (
+        <div className="text-center text-yellow-400 text-sm mt-3">
+            ⚠️ Recommended to use high speed internet such as 5G Mobile Data or WiFi 
+  for a better and smooth experience
+            <button
+            onClick={() => setShowNote(false)}
+            className="ml-3 text-white underline"
+            >
+            Hide
+            </button>
+        </div>
+      )}
 
       {/* CONTENT */}
       <div className="p-6">
