@@ -5,7 +5,7 @@ function Footer() {
         
         {/* Left */}
         <p>
-          © {new Date().getFullYear()} Movie App. All rights reserved. Created with ❤️ By Bharat Joshi
+          © {new Date().getFullYear()} CineMind. All rights reserved. Created with ❤️ By Bharat Joshi
         </p>
 
         {/* Right */}
