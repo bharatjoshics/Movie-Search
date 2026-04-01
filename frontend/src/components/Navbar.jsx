@@ -5,7 +5,7 @@ function Navbar() {
     <div className="flex justify-between items-center px-6 py-4 bg-black/40 backdrop-blur-md">
       
       <Link to="/" className="text-2xl font-bold text-red-500">
-        MovieApp
+        CineMind
       </Link>
 
       <Link

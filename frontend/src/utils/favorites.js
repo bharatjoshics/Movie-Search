@@ -12,10 +12,10 @@ export const saveFavorites = (favorites) => {
 export const toggleFavorite = (movie) => {
   const favorites = getFavorites();
 
-  const exists = favorites.find((m) => m.imdbID === movie.imdbID);
+  const exists = favorites.find((m) => movie.id === movie.imdbID);
 
   if (exists) {
-    const updated = favorites.filter((m) => m.imdbID !== movie.imdbID);
+    const updated = favorites.filter((m) => movie.id !== movie.imdbID);
     saveFavorites(updated);
     return false;
   } else {
@@ -28,5 +28,5 @@ export const toggleFavorite = (movie) => {
 // Check if favorite
 export const isFavorite = (id) => {
   const favorites = getFavorites();
-  return favorites.some((m) => m.imdbID === id);
+  return favorites.some((m) => movie.id === id);
 };
